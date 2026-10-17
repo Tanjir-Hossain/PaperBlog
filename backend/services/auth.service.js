@@ -12,6 +12,37 @@ const RESET_TOKEN_TTL_MS = 15 * 60 * 1000; // 15 minutes
 const hashResetToken = (token) =>
     crypto.createHash("sha256").update(token).digest("hex");
 
+/** True when Gmail credentials are configured in the environment. */
+const mailConfigured = () =>
+    Boolean(process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD);
+
+/**
+ * Sends the password-reset link over email using Gmail + Nodemailer.
+ * `nodemailer` is imported lazily so the dependency is only touched when an
+ * email actually needs to go out.
+ */
+const sendPasswordResetEmail = async (email, resetUrl) => {
+    const nodemailer = (await import("nodemailer")).default;
+
+    const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+            user: process.env.GMAIL_USER,
+            pass: process.env.GMAIL_APP_PASSWORD
+        }
+    });
+
+    await transporter.sendMail({
+        from: `"Blog Management" <${process.env.GMAIL_USER}>`,
+        to: email,
+        subject: "Reset your password",
+        text: `You requested a password reset.\n\nOpen this link to choose a new password:\n${resetUrl}\n\nThis link expires in 15 minutes. If you did not request this, you can ignore this email.`,
+        html: `<p>You requested a password reset.</p>
+               <p><a href="${resetUrl}">Click here to choose a new password</a></p>
+               <p>This link expires in 15 minutes. If you did not request this, you can safely ignore this email.</p>`
+    });
+};
+
 /**
  * Creates a new account. The role is hard-coded to "user" here on purpose —
  * a client can never promote itself to admin through registration.
@@ -92,9 +123,10 @@ export const authenticateUser = async ({ email, password }) => {
  * from revealing which emails are registered, the same generic message is
  * returned whether or not the account exists.
  *
- * A real deployment would email the reset link. Since mail delivery is out of
- * scope for this project, the raw token is returned in the response (dev only)
- * so the reset page can be tested end to end.
+ * In production the reset link is emailed to the user via Gmail. In
+ * development (or whenever Gmail is not configured) the raw token is returned
+ * in the response instead, so the reset page can be tested without a mail
+ * server. Either way the same generic message is returned.
  */
 export const beginPasswordReset = async ({ email }) => {
     const normalisedEmail = email.trim().toLowerCase();
@@ -113,12 +145,26 @@ export const beginPasswordReset = async ({ email }) => {
     user.resetTokenExpiresAt = new Date(Date.now() + RESET_TOKEN_TTL_MS);
     await user.save();
 
+    const resetUrl = `${process.env.FRONTEND_URL || "http://localhost:3000"}/reset-password/${rawToken}`;
     const payload = { message: genericMessage };
 
-    // Expose the token only outside production so the flow is testable locally.
-    if (process.env.NODE_ENV !== "production") {
+    // Email the link when mail is configured (always attempted in production).
+    // A send failure is logged but never leaks whether the account exists.
+    let emailed = false;
+    if (process.env.NODE_ENV === "production" || mailConfigured()) {
+        try {
+            await sendPasswordResetEmail(user.email, resetUrl);
+            emailed = true;
+        } catch (error) {
+            console.error("Password reset email failed:", error.message);
+        }
+    }
+
+    // Outside production, if no email went out, hand the link back so the flow
+    // stays testable locally.
+    if (!emailed && process.env.NODE_ENV !== "production") {
         payload.resetToken = rawToken;
-        payload.resetUrl = `${process.env.FRONTEND_URL || "http://localhost:3000"}/reset-password/${rawToken}`;
+        payload.resetUrl = resetUrl;
     }
 
     return payload;

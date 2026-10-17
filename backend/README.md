@@ -128,7 +128,7 @@ Base path: `http://localhost:5000`
 | 10 | PATCH | `/api/users/profile/image` | User / Admin | Upload own avatar (`multipart/form-data`, field `image`) |
 | 11 | PATCH | `/api/users/password` | User / Admin | Change own password |
 
-**Password reset (no email provider):** `forgot-password` stores only a SHA-256 hash of a random token with a 15-minute expiry and always replies with the same generic message. Outside production (`NODE_ENV !== "production"`) the response also returns `resetToken` / `resetUrl` so the flow is testable locally.
+**Password reset:** `forgot-password` stores only a SHA-256 hash of a random token with a 15-minute expiry and always replies with the same generic message (so it never reveals which emails are registered). The reset link is delivered by email via Gmail + Nodemailer when `GMAIL_USER` / `GMAIL_APP_PASSWORD` are set (always attempted in production). When mail is **not** configured and `NODE_ENV !== "production"`, the response instead returns `resetToken` / `resetUrl` so the flow stays testable without a mail server. Use a Google **App Password** (Account → Security → 2-Step Verification → App passwords), not your normal password.
 
 **Avatar upload:** accepts a single `image` field (JPG / PNG / WEBP, ≤ 2 MB) via `multipart/form-data`. Files are stored under `/uploads/profile` and served statically from `/uploads`; the stored path is saved on the user as `profileImage`.
 

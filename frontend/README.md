@@ -164,9 +164,9 @@ Create an admin by registering an account and promoting it in MySQL:
 UPDATE users SET role = 'admin' WHERE email = 'admin@example.com';
 ```
 
-### Password reset without email
+### Password reset
 
-The API exposes `POST /api/auth/forgot-password` and `PATCH /api/auth/reset-password/:token`. Because email delivery is out of scope, when the API runs with `NODE_ENV=development` the reset response includes the raw reset link, and the Forgot-Password page surfaces an **"Open reset link →"** shortcut so the full flow can be tested locally.
+The API exposes `POST /api/auth/forgot-password` and `PATCH /api/auth/reset-password/:token`. When the backend is configured with Gmail credentials (`GMAIL_USER` / `GMAIL_APP_PASSWORD`), the reset link is emailed to the user. When mail isn't configured and the API runs in development, the response returns the raw reset link and the Forgot-Password page surfaces an **"Open reset link →"** shortcut, so the full flow can be tested locally without a mail server.
 
 ## Application routes
 
