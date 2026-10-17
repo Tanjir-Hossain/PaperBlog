@@ -1,0 +1,85 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   PaperBlog design tokens — a light "newspaper" theme: a warm newsprint
+   canvas, a classic masthead red as the brand colour, and a serif family for
+   headlines. The neutral text is a soft, warm near-black ink.
+--------------------------------------------------------------------------- */
+@theme {
+    --color-brand-50: #fef3f1;
+    --color-brand-100: #fde3df;
+    --color-brand-200: #fbc8c0;
+    --color-brand-300: #f5a194;
+    --color-brand-400: #ec6f5d;
+    --color-brand-500: #dd4a37;
+    --color-brand-600: #c2362a;
+    --color-brand-700: #a02a21;
+    --color-brand-800: #84251f;
+    --color-brand-900: #6e231f;
+
+    --color-accent-400: #fbbf24;
+    --color-accent-500: #f59e0b;
+
+    --color-ink: #211c18;
+    /* Warm newsprint paper — a low-saturation cream rather than plain white. */
+    --color-canvas: #f6f1e7;
+
+    --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+    --font-serif: var(--font-lora), Georgia, "Times New Roman", serif;
+}
+
+html,
+body {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    -webkit-font-smoothing: antialiased;
+}
+
+body {
+    font-family: var(--font-sans);
+    /* A faint paper tint so large white panels sit on a warm page. */
+    background-image:
+        radial-gradient(circle at 20% 0%, rgba(194, 54, 42, 0.04), transparent 40%),
+        radial-gradient(circle at 100% 0%, rgba(245, 158, 11, 0.05), transparent 35%);
+    background-attachment: fixed;
+}
+
+/* Serif headline helper — gives titles a newspaper masthead feel. */
+.font-headline {
+    font-family: var(--font-serif);
+    letter-spacing: -0.01em;
+}
+
+/* Blog article body uses the serif family for a reading-first feel. */
+.prose-article {
+    font-family: var(--font-serif);
+    line-height: 1.8;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+/* Subtle fade used by cards and page sections. */
+@keyframes paper-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fade-in {
+    animation: paper-fade-in 0.35s ease both;
+}
+
+/* Thin, tidy scrollbars inside scrollable panels. */
+.scroll-slim::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+.scroll-slim::-webkit-scrollbar-thumb {
+    background: #d8cfbf;
+    border-radius: 9999px;
+}
