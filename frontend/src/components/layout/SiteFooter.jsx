@@ -23,7 +23,7 @@ export default function SiteFooter() {
                 </nav>
             </div>
             <div className="border-t border-slate-100 py-4 text-center text-xs text-slate-400">
-                © {new Date().getFullYear()} {APP_NAME}. Built with Next.js for the Blog Management assignment.
+                {new Date().getFullYear()} {APP_NAME} | © Tanjir Hosain
             </div>
         </footer>
     );
